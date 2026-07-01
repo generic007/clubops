@@ -10,39 +10,39 @@ class AttachmentController extends Controller
 {
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'file' => 'required|file|max:25600', // 25MB max
-            'attachable_type' => 'required|string',
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png,gif,doc,docx,txt,csv|max:25600',
+            'attachable_type' => 'required|string|max:255',
             'attachable_id' => 'required|integer',
             'notes' => 'nullable|string|max:500',
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('attachments/' . date('Y/m'), 'local');
+        $path = $file->store('attachments', 'private');
 
         $attachment = Attachment::create([
-            'attachable_type' => $validated['attachable_type'],
-            'attachable_id' => $validated['attachable_id'],
+            'attachable_type' => $request->attachable_type,
+            'attachable_id' => $request->attachable_id,
             'uploaded_by' => $request->user()->id,
             'filename' => $file->hashName(),
             'original_filename' => $file->getClientOriginalName(),
             'mime_type' => $file->getMimeType(),
             'size_bytes' => $file->getSize(),
-            'disk' => 'local',
+            'disk' => 'private',
             'path' => $path,
-            'notes' => $validated['notes'] ?? null,
+            'notes' => $request->notes,
         ]);
 
-        return back()->with('success', 'File uploaded.');
+        return redirect()->back()->with('success', 'File uploaded.');
     }
 
     public function download(Attachment $attachment)
     {
-        if (!Storage::disk($attachment->disk)->exists($attachment->path)) {
-            return back()->with('error', 'File not found.');
+        if (!Storage::disk('private')->exists($attachment->path)) {
+            abort(404, 'File not found.');
         }
 
-        return Storage::disk($attachment->disk)->download(
+        return Storage::disk('private')->download(
             $attachment->path,
             $attachment->original_filename
         );
