@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\PlayerStatus;
+use App\Enums\RiskLevel;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Player extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'name', 'preferred_name', 'phone', 'email', 'status',
+        'referral_source', 'agent_id', 'assigned_admin_id',
+        'risk_status', 'last_contacted_at', 'last_played_at',
+        'compliance_complete', 'notes',
+    ];
+
+    protected $casts = [
+        'status' => PlayerStatus::class,
+        'compliance_complete' => 'boolean',
+        'risk_status' => RiskLevel::class,
+        'last_contacted_at' => 'datetime',
+        'last_played_at' => 'datetime',
+    ];
+
+    public function platformAccounts(): HasMany
+    {
+        return $this->hasMany(PlayerPlatformAccount::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'player_tag');
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(PlayerNote::class);
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class, 'agent_id');
+    }
+
+    public function assignedAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class, 'assigned_admin_id');
+    }
+
+    public function ledgerLines(): HasMany
+    {
+        return $this->hasMany(LedgerLine::class);
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(GameSession::class);
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    public function promoRedemptions(): HasMany
+    {
+        return $this->hasMany(PromotionRedemption::class);
+    }
+
+    public function riskFlags(): HasMany
+    {
+        return $this->hasMany(RiskFlag::class);
+    }
+
+    public function compliance(): HasOne
+    {
+        return $this->hasOne(ComplianceProfile::class);
+    }
+
+    public function exclusions(): HasMany
+    {
+        return $this->hasMany(Exclusion::class);
+    }
+
+    public function balance(): float
+    {
+        $credit = $this->ledgerLines()->sum('credit');
+        $debit = $this->ledgerLines()->sum('debit');
+        return (float) ($credit - $debit);
+    }
+
+    public function isExcluded(): bool
+    {
+        return $this->exclusions()
+            ->where('starts_at', '<=', now())
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+            })
+            ->exists();
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', [
+            PlayerStatus::Active,
+            PlayerStatus::Vip,
+        ]);
+    }
+
+    public function scopeByAgent($query, Agent $agent)
+    {
+        return $query->where('agent_id', $agent->id);
+    }
+}

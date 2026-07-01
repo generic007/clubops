@@ -1,0 +1,12 @@
+.env
+.DS_Store
+node_modules/
+npm-debug.log
+storage/*.key
+storage/logs/*
+storage/app/private/*
+!storage/app/private/.gitkeep
+public/hot
+public/storage
+.phpunit.result.cache
+vendor/
