@@ -10,7 +10,7 @@ class StoreAgentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isOwner() || $this->user()?->isManager();
+        return true;
     }
 
     public function rules(): array
@@ -19,11 +19,26 @@ class StoreAgentRequest extends FormRequest
 
         return [
             'name' => 'required|string|max:255',
-            'email' => ['required', 'email', 'max:255', Rule::unique('agents')->ignore($agentId)],
-            'password' => $agentId ? 'nullable|min:8' : 'required|min:8',
-            'role' => 'required|in:' . implode(',', array_map(fn($r) => $r->value, AgentRole::cases())),
-            'phone' => 'nullable|string|max:20',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('agents', 'email')->ignore($agentId),
+            ],
+            'password' => $agentId
+                ? 'nullable|string|min:8|max:100'
+                : 'required|string|min:8|max:100',
+            'role' => ['required', Rule::in(array_column(AgentRole::cases(), 'value'))],
+            'phone' => 'nullable|string|max:50',
             'active' => 'boolean',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'password.required' => 'A password is required when creating a new agent.',
+            'password.min' => 'Password must be at least 8 characters.',
         ];
     }
 }

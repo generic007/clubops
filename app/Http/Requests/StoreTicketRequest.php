@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\TicketType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreTicketRequest extends FormRequest
 {
@@ -16,11 +17,19 @@ class StoreTicketRequest extends FormRequest
     {
         return [
             'player_id' => 'nullable|exists:players,id',
-            'assigned_to' => 'nullable|exists:agents,id',
-            'type' => 'required|in:' . implode(',', array_map(fn($t) => $t->value, TicketType::cases())),
-            'priority' => 'required|in:low,normal,high,urgent',
             'subject' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:10000',
+            'type' => ['required', Rule::in(array_column(TicketType::cases(), 'value'))],
+            'priority' => 'required|string|in:low,medium,high,urgent',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'subject.required' => 'A ticket subject is required.',
+            'type.required' => 'Please select a ticket type.',
+            'priority.required' => 'Please select a priority level.',
         ];
     }
 }
