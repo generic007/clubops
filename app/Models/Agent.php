@@ -12,12 +12,13 @@ class Agent extends Authenticatable
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'phone', 'active', 'created_by',
+        'name', 'email', 'password', 'role', 'phone', 'active', 'created_by', 'last_login_at',
     ];
 
     protected $casts = [
         'role' => AgentRole::class,
         'active' => 'boolean',
+        'last_login_at' => 'datetime',
     ];
 
     protected $hidden = ['password', 'remember_token'];
