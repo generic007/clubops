@@ -1566,6 +1566,14 @@
                     <span class="nav-icon">📜</span>
                     <span class="nav-text">Audit Log</span>
                 </a>
+                <a href="{{ route('games.index') }}" class="{{ request()->routeIs('games.*') ? 'active' : '' }}">
+                    <span class="nav-icon">🎮</span>
+                    <span class="nav-text">Games</span>
+                </a>
+                <a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </a>
             </nav>
 
             <!-- Sidebar Footer -->

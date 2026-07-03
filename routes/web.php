@@ -16,6 +16,8 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ComplianceController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\SettingsController;
 
 Route::redirect('/', '/dashboard');
 
@@ -106,6 +108,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('audit-log', [AuditLogController::class, 'index'])
         ->middleware('role:owner,manager,auditor')
         ->name('audit-log');
+
+    // Games — owner/manager/agent can view, owner/manager can create
+    Route::middleware('role:owner,manager,agent')->group(function () {
+        Route::resource('games', GameController::class)->except(['destroy']);
+        Route::post('games/{game}/sessions', [GameController::class, 'startSession'])->name('games.sessions.start');
+    });
+    Route::delete('games/{game}', [GameController::class, 'destroy'])->name('games.destroy')
+        ->middleware('role:owner,manager');
+
+    // Settings — owner/manager only
+    Route::get('settings', [SettingsController::class, 'index'])->name('settings.index')
+        ->middleware('role:owner,manager');
 
     // Compliance — owner/manager only (sensitive operations)
     Route::middleware('role:owner,manager')->group(function () {
