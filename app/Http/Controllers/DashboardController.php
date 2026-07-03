@@ -24,6 +24,8 @@ class DashboardController extends Controller
             ->where('created_at', '>=', now()->subWeek())
             ->count();
         $pendingOnboarding = Player::where('status', PlayerStatus::Pending)->count();
+        $inactivePlayers = Player::inactive()->count();
+        $highRiskPlayers = Player::highRisk()->count();
         $unresolvedTickets = SupportTicket::open()->count();
         $reconMismatches = Reconciliation::where('status', 'in_progress')->count();
         $openPromoLiability = Promotion::where('active', true)

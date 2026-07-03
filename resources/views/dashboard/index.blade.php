@@ -51,6 +51,28 @@
         <div class="kpi-card">
             <div class="d-flex justify-content-between">
                 <div>
+                    <div class="kpi-value" style="color: #64748b;">{{ $inactivePlayers }}</div>
+                    <div class="kpi-label">Inactive</div>
+                </div>
+                <div class="kpi-icon">💤</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <div class="kpi-value" style="color: {{ $highRiskPlayers > 0 ? '#ef4444' : '#10b981' }};">{{ $highRiskPlayers }}</div>
+                    <div class="kpi-label">High Risk</div>
+                </div>
+                <div class="kpi-icon">⚠️</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between">
+                <div>
                     <div class="kpi-value">{{ $unresolvedTickets }}</div>
                     <div class="kpi-label">Open Tickets</div>
                 </div>

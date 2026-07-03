@@ -19,7 +19,7 @@ class Player extends Model
         'name', 'preferred_name', 'phone', 'email', 'status',
         'referral_source', 'agent_id', 'assigned_admin_id',
         'risk_status', 'last_contacted_at', 'last_played_at',
-        'compliance_complete', 'notes',
+        'compliance_complete', 'notes', 'preferred_game', 'preferred_stakes',
     ];
 
     protected $casts = [
@@ -97,6 +97,24 @@ class Player extends Model
         return (float) ($credit - $debit);
     }
 
+    public function lifetimeVolume(): float
+    {
+        return (float) $this->ledgerLines()
+            ->selectRaw('COALESCE(SUM(debit), 0) + COALESCE(SUM(credit), 0) as volume')
+            ->value('volume');
+    }
+
+    public function lifetimeProfitLoss(): float
+    {
+        $credits = (float) $this->ledgerLines()
+            ->whereHas('entry', fn($q) => $q->where('type', '!=', \App\Enums\TransactionType::Void->value))
+            ->sum('credit');
+        $debits = (float) $this->ledgerLines()
+            ->whereHas('entry', fn($q) => $q->where('type', '!=', \App\Enums\TransactionType::Void->value))
+            ->sum('debit');
+        return $credits - $debits;
+    }
+
     public function isExcluded(): bool
     {
         return $this->exclusions()
@@ -112,6 +130,19 @@ class Player extends Model
         return $query->whereIn('status', [
             PlayerStatus::Active,
             PlayerStatus::Vip,
+        ]);
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', PlayerStatus::Inactive);
+    }
+
+    public function scopeHighRisk($query)
+    {
+        return $query->whereIn('risk_status', [
+            RiskLevel::High,
+            RiskLevel::Critical,
         ]);
     }
 

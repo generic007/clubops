@@ -74,8 +74,30 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="col-12">
-                    <label class="form-label">Notes</label>
+                <div class="col-md-4">
+                    <label class="form-label">Preferred Game</label>
+                    <select name="preferred_game" class="form-select">
+                        <option value="">—</option>
+                        <option value="PLO" {{ old('preferred_game', $player->preferred_game) === 'PLO' ? 'selected' : '' }}>PLO</option>
+                        <option value="NLH" {{ old('preferred_game', $player->preferred_game) === 'NLH' ? 'selected' : '' }}>NLH</option>
+                        <option value="Mixed" {{ old('preferred_game', $player->preferred_game) === 'Mixed' ? 'selected' : '' }}>Mixed</option>
+                        <option value="PLO8" {{ old('preferred_game', $player->preferred_game) === 'PLO8' ? 'selected' : '' }}>PLO8</option>
+                        <option value="Big O" {{ old('preferred_game', $player->preferred_game) === 'Big O' ? 'selected' : '' }}>Big O</option>
+                        <option value="Tournament" {{ old('preferred_game', $player->preferred_game) === 'Tournament' ? 'selected' : '' }}>Tournament</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Preferred Stakes</label>
+                    <select name="preferred_stakes" class="form-select">
+                        <option value="">—</option>
+                        <option value="1/2" {{ old('preferred_stakes', $player->preferred_stakes) === '1/2' ? 'selected' : '' }}>$1/$2</option>
+                        <option value="2/5" {{ old('preferred_stakes', $player->preferred_stakes) === '2/5' ? 'selected' : '' }}>$2/$5</option>
+                        <option value="5/5" {{ old('preferred_stakes', $player->preferred_stakes) === '5/5' ? 'selected' : '' }}>$5/$5</option>
+                        <option value="5/5/10" {{ old('preferred_stakes', $player->preferred_stakes) === '5/5/10' ? 'selected' : '' }}>$5/$5/$10</option>
+                        <option value="5/10" {{ old('preferred_stakes', $player->preferred_stakes) === '5/10' ? 'selected' : '' }}>$5/$10</option>
+                        <option value="10/20" {{ old('preferred_stakes', $player->preferred_stakes) === '10/20' ? 'selected' : '' }}>$10/$20</option>
+                    </select>
+                </div>
                     <textarea name="notes" class="form-control" rows="3">{{ old('notes', $player->notes) }}</textarea>
                 </div>
             </div>

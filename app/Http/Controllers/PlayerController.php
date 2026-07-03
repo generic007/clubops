@@ -78,7 +78,9 @@ class PlayerController extends Controller
             'riskFlags', 'promoRedemptions.promotion', 'tickets',
             'compliance', 'exclusions']);
         $balance = $player->balance();
-        return view('players.show', compact('player', 'balance'));
+        $lifetimeVolume = $player->lifetimeVolume();
+        $lifetimePnl = $player->lifetimeProfitLoss();
+        return view('players.show', compact('player', 'balance', 'lifetimeVolume', 'lifetimePnl'));
     }
 
     public function edit(Player $player)

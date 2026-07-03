@@ -12,5 +12,4 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             LedgerAccountSeeder::class,
         ]);
-    }
-}
+    }}
