@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\ClubOpsEdition;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayerNoteController;
@@ -18,15 +19,49 @@ use App\Http\Controllers\ComplianceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\PlayerAuthController;
+use App\Http\Controllers\QuickEntryController;
+use App\Http\Controllers\AgentCommissionController;
 
-Route::redirect('/', '/dashboard');
+// Landing page (guest-accessible)
+Route::get('/', function () {
+    return view('landing');
+})->name('landing');
 
+// Pro-only: Player portal
+if (ClubOpsEdition::isPro()) {
+    Route::prefix('player')->name('player.')->group(function () {
+        Route::get('login', [PlayerAuthController::class, 'showLoginForm'])->name('login');
+        Route::post('login', [PlayerAuthController::class, 'login']);
+
+        Route::middleware('auth:player')->group(function () {
+            Route::post('logout', [PlayerAuthController::class, 'logout'])->name('logout');
+            Route::get('dashboard', [PlayerAuthController::class, 'dashboard'])->name('dashboard');
+        });
+    });
+
+    // Pro-only: Team invitations (token-based, no auth needed for accept)
+    Route::get('invitations/accept/{token}', [InvitationController::class, 'accept'])->name('invitations.accept');
+    Route::post('invitations/accept/{token}/complete', [InvitationController::class, 'completeRegistration'])->name('invitations.complete');
+}
+
+// Authenticated admin area
 Route::middleware(['auth'])->group(function () {
-    // Dashboard — all authenticated users
+    // Pro-only: Team & Invitations
+    if (ClubOpsEdition::isPro()) {
+        Route::get('team', [InvitationController::class, 'index'])->name('invitations.index');
+        Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+        Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+        Route::delete('team/agents/{targetAgent}', [InvitationController::class, 'removeAgent'])->name('invitations.remove-agent');
+    }
+
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Player CRM — any agent, but policies restrict within controller
+    // Player CRM
     Route::resource('players', PlayerController::class);
+    Route::get('players/export', [PlayerController::class, 'export'])->name('players.export');
     Route::post('players/{player}/notes', [PlayerNoteController::class, 'store'])->name('players.notes.store')
         ->middleware('can:update,player');
     Route::delete('players/{player}/notes/{note}', [PlayerNoteController::class, 'destroy'])->name('players.notes.destroy')
@@ -38,10 +73,30 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('players/{player}/tags/{tag}', [PlayerController::class, 'removeTag'])->name('players.tags.destroy')
         ->middleware('can:update,player');
 
-    // Agents — owner/manager only
-    Route::resource('agents', AgentController::class)->middleware('role:owner,manager');
+    // Dashboard quick actions
+    Route::post('quick/buy-in', [QuickEntryController::class, 'buyIn'])->name('quick.buy-in');
+    Route::post('quick/cash-out', [QuickEntryController::class, 'cashOut'])->name('quick.cash-out');
+    Route::get('quick/search-players', [QuickEntryController::class, 'searchPlayers'])->name('quick.search-players');
 
-    // Ledger Accounts — financial config, manager/accountant only
+    // Commissions / Rakeback (Pro only)
+    if (ClubOpsEdition::isPro()) {
+        Route::get('commissions', [AgentCommissionController::class, 'index'])->name('commissions.index');
+        Route::post('commissions', [AgentCommissionController::class, 'store'])->name('commissions.store');
+        Route::delete('commissions/{structure}', [AgentCommissionController::class, 'destroy'])->name('commissions.destroy');
+        Route::post('commissions/{targetAgent}/settle', [AgentCommissionController::class, 'settle'])->name('commissions.settle');
+    }
+
+    // Pro-only: Player portal access
+    if (ClubOpsEdition::isPro()) {
+        Route::post('players/{player}/enable-portal', [PlayerController::class, 'enablePortal'])->name('players.enable-portal')
+            ->middleware('role:owner,manager');
+    }
+
+    // Agents
+    Route::resource('agents', AgentController::class)->middleware('role:owner,manager');
+    Route::get('agents/export', [AgentController::class, 'export'])->name('agents.export')->middleware('role:owner,manager');
+
+    // Ledger Accounts
     Route::resource('ledger/accounts', LedgerAccountController::class)
         ->middleware('role:owner,manager,accountant')
         ->names([
@@ -52,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
             'update' => 'ledger.accounts.update',
         ]);
 
-    // Ledger Entries — financial operations
+    // Ledger Entries
     Route::middleware('role:owner,manager,accountant')->group(function () {
         Route::get('ledger/entries', [LedgerEntryController::class, 'index'])->name('ledger.entries.index');
         Route::get('ledger/entries/create', [LedgerEntryController::class, 'create'])->name('ledger.entries.create');
@@ -62,7 +117,7 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('can:void,entry');
     });
 
-    // Reconciliation — manager+ role only
+    // Reconciliation
     Route::middleware('role:owner,manager')->group(function () {
         Route::get('reconciliations', [ReconciliationController::class, 'index'])->name('reconciliations.index');
         Route::get('reconciliations/create', [ReconciliationController::class, 'create'])->name('reconciliations.create');
@@ -71,17 +126,19 @@ Route::middleware(['auth'])->group(function () {
         Route::post('reconciliations/{reconciliation}/lock', [ReconciliationController::class, 'lock'])->name('reconciliations.lock');
     });
 
-    // Promotions — owner/manager only
+    // Promotions
     Route::middleware('role:owner,manager')->group(function () {
         Route::resource('promotions', PromotionController::class);
+        Route::get('promotions/export', [PromotionController::class, 'export'])->name('promotions.export');
         Route::post('promotions/{promotion}/redeem/{player}', [PromotionController::class, 'redeem'])->name('promotions.redeem');
     });
 
-    // Support Tickets — any agent, but policy checks within controller
+    // Support Tickets
     Route::resource('tickets', SupportTicketController::class);
+    Route::get('tickets/export', [SupportTicketController::class, 'export'])->name('tickets.export');
     Route::post('tickets/{ticket}/comments', [TicketCommentController::class, 'store'])->name('tickets.comments.store');
 
-    // Reports — owner/manager/accountant/auditor only
+    // Reports
     Route::middleware('role:owner,manager,accountant,auditor')->prefix('reports')->name('reports.')->group(function () {
         Route::get('player-statement/{player}', [ReportController::class, 'playerStatement'])->name('player-statement');
         Route::get('daily-ledger/{date?}', [ReportController::class, 'dailyLedger'])->name('daily-ledger');
@@ -93,35 +150,38 @@ Route::middleware(['auth'])->group(function () {
         Route::get('activity-by-platform', [ReportController::class, 'activityByPlatform'])->name('activity-by-platform');
     });
 
-    // Imports — owner/manager only (bulk data operations)
+    // Imports
     Route::middleware('role:owner,manager')->group(function () {
         Route::resource('imports', ImportController::class);
         Route::post('imports/{import}/accept/{row}', [ImportController::class, 'acceptRow'])->name('imports.accept');
         Route::post('imports/{import}/skip/{row}', [ImportController::class, 'skipRow'])->name('imports.skip');
     });
 
-    // Attachments — any agent, controller handles storage security
+    // Attachments
     Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
     Route::post('attachments/upload', [AttachmentController::class, 'store'])->name('attachments.upload');
 
-    // Audit Log — owner/manager/auditor only
+    // Audit Log
     Route::get('audit-log', [AuditLogController::class, 'index'])
         ->middleware('role:owner,manager,auditor')
         ->name('audit-log');
 
-    // Games — owner/manager/agent can view, owner/manager can create
+    // Games
     Route::middleware('role:owner,manager,agent')->group(function () {
         Route::resource('games', GameController::class)->except(['destroy']);
+        Route::get('games/export', [GameController::class, 'export'])->name('games.export');
         Route::post('games/{game}/sessions', [GameController::class, 'startSession'])->name('games.sessions.start');
+        Route::put('games/sessions/{session}/end', [GameController::class, 'endSession'])->name('games.sessions.end');
+        Route::delete('games/sessions/{session}', [GameController::class, 'destroySession'])->name('games.sessions.destroy');
     });
     Route::delete('games/{game}', [GameController::class, 'destroy'])->name('games.destroy')
         ->middleware('role:owner,manager');
 
-    // Settings — owner/manager only
+    // Settings
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index')
         ->middleware('role:owner,manager');
 
-    // Compliance — owner/manager only (sensitive operations)
+    // Compliance
     Route::middleware('role:owner,manager')->group(function () {
         Route::get('compliance', [ComplianceController::class, 'index'])->name('compliance.index');
         Route::get('compliance/players/{player}', [ComplianceController::class, 'show'])->name('compliance.show');

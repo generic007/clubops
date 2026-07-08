@@ -474,6 +474,14 @@
                     @enderror
                 </div>
 
+                <!-- Forgot Password? -->
+                <div style="text-align:right; margin-bottom:6px;">
+                    <a href="{{ route('password.request') }}"
+                       style="color: #64748b; font-size: .82rem; text-decoration: none; transition: color .2s;">
+                        Forgot password?
+                    </a>
+                </div>
+
                 <!-- Remember Me — Toggle Switch -->
                 <div class="remember-wrap">
                     <label class="toggle-switch">
@@ -487,8 +495,17 @@
                 <button type="submit" class="btn-submit">Sign In</button>
             </form>
 
-            <div class="login-footer">
-                ClubOps OS &mdash; Secure Access
+            <div class="login-footer" style="margin-top: 32px;">
+                <div style="margin-bottom: 16px; padding: 16px; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.15); border-radius: var(--radius-md);">
+                    <div style="font-size: .85rem; color: #94a3b8; margin-bottom: 8px;">Don't have a club yet?</div>
+                    <a href="{{ route('setup') }}" style="display: inline-block; background: linear-gradient(135deg, var(--primary), #2563eb); color: #fff; padding: 10px 24px; border-radius: var(--radius-pill); font-weight: 700; font-size: .88rem; text-decoration: none; transition: all .25s; box-shadow: 0 4px 12px rgba(59,130,246,.25);">
+                        🚀 Create Your Club
+                    </a>
+                    <div style="font-size: .75rem; color: #64748b; margin-top: 6px;">Takes under a minute. Free to start.</div>
+                </div>
+                <div style="font-size: .72rem; color: #475569;">
+                    {{ \App\ClubOpsEdition::label() }} &mdash; Secure Access
+                </div>
             </div>
         </div>
     </div>
