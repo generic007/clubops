@@ -23,6 +23,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PlayerAuthController;
 use App\Http\Controllers\QuickEntryController;
 use App\Http\Controllers\AgentCommissionController;
+use App\Http\Controllers\BillingController;
 
 // Landing page (guest-accessible)
 Route::get('/', function () {
@@ -46,8 +47,17 @@ if (ClubOpsEdition::isPro()) {
     Route::post('invitations/accept/{token}/complete', [InvitationController::class, 'completeRegistration'])->name('invitations.complete');
 }
 
-// Authenticated admin area
+// Billing routes (auth required, but NO subscription check)
 Route::middleware(['auth'])->group(function () {
+    Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
+    Route::get('/billing/checkout/{plan}/{interval?}', [BillingController::class, 'checkout'])->name('billing.checkout');
+    Route::get('/billing/portal', [BillingController::class, 'portal'])->name('billing.portal');
+    Route::get('/billing/success', [BillingController::class, 'success'])->name('billing.success');
+    Route::get('/billing/cancelled', [BillingController::class, 'cancelled'])->name('billing.cancelled');
+});
+
+// Authenticated admin area
+Route::middleware(['auth', 'subscribed'])->group(function () {
     // Pro-only: Team & Invitations
     if (ClubOpsEdition::isPro()) {
         Route::get('team', [InvitationController::class, 'index'])->name('invitations.index');

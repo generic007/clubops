@@ -11,5 +11,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             LedgerAccountSeeder::class,
+            SubscriptionPlanSeeder::class,
         ]);
     }}
