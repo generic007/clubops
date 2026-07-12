@@ -10,3 +10,6 @@ public/hot
 public/storage
 .phpunit.result.cache
 vendor/
+
+# Env files (never commit)
+.env.*
