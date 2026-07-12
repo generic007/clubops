@@ -5,7 +5,20 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">🤝 Agents</h1>
-    <a href="{{ route('agents.create') }}" class="btn btn-primary">+ New Agent</a>
+    <div class="d-flex gap-2 align-items-center">
+        @x('export-button', ['route' => route('agents.export')])
+        <a href="{{ route('agents.create') }}" class="btn btn-primary">+ New Agent</a>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="d-flex gap-3 align-items-start mb-4 flex-wrap">
+    @x('search-bar', ['route' => route('agents.index'), 'placeholder' => 'Search agents...'])
+</div>
+
+<!-- Loading Skeleton -->
+<div id="loading-agents" x-data x-init="$el.remove()">
+    @x('skeleton-table', ['rows' => 5, 'cols' => 7])
 </div>
 
 <div class="card shadow-sm">

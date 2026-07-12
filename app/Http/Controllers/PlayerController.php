@@ -6,10 +6,12 @@ use App\Models\Player;
 use App\Models\Tag;
 use App\Services\PlayerCrmService;
 use App\Http\Requests\StorePlayerRequest;
+use App\Traits\ExportsCsv;
 use Illuminate\Http\Request;
 
 class PlayerController extends Controller
 {
+    use ExportsCsv;
     protected PlayerCrmService $crm;
 
     public function __construct(PlayerCrmService $crm)
@@ -135,5 +137,68 @@ class PlayerController extends Controller
         $this->authorize('update', $player);
         $player->tags()->detach($tag->id);
         return back()->with('success', 'Tag removed.');
+    }
+
+    /**
+     * Enable player portal access and set a password.
+     */
+    public function enablePortal(Request $request, Player $player)
+    {
+        $this->authorize('update', $player);
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $player->update([
+            'password' => bcrypt($validated['password']),
+            'can_login' => true,
+        ]);
+
+        $portalUrl = route('player.login');
+
+        return back()->with('success', "Player portal enabled for {$player->name}. They can login at <a href='{$portalUrl}'>{$portalUrl}</a>");
+    }
+
+    public function export(Request $request)
+    {
+        $query = Player::query()->with(['agent', 'tags', 'platformAccounts']);
+
+        if ($request->user()->isAgent()) {
+            $query->where('agent_id', $request->user()->id)
+                ->orWhere('assigned_admin_id', $request->user()->id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%");
+            });
+        }
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', fn($q) => $q->where('name', $request->tag));
+        }
+
+        $players = $query->latest()->get();
+
+        return $this->exportCsv($players, [
+            'Name', 'Email', 'Phone', 'Status', 'Agent', 'Tags', 'Last Played', 'Created',
+        ], function ($player) {
+            return [
+                $player->name,
+                $player->email,
+                $player->phone ?? '',
+                $player->status->value,
+                $player->agent?->name ?? '',
+                $player->tags->pluck('name')->implode(', '),
+                $player->last_played_at ? $player->last_played_at->format('Y-m-d') : '',
+                $player->created_at->format('Y-m-d'),
+            ];
+        }, 'players-' . now()->format('Y-m-d') . '.csv');
     }
 }

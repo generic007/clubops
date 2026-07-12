@@ -6,11 +6,13 @@ use App\Models\Game;
 use App\Models\Agent;
 use App\Enums\AgentRole;
 use App\Services\AuditService;
+use App\Traits\ExportsCsv;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
+    use ExportsCsv;
     protected AuditService $audit;
 
     public function __construct(AuditService $audit)
@@ -162,5 +164,46 @@ class GameController extends Controller
         ]);
 
         return back()->with('success', 'Session ended.');
+    }
+
+    public function destroySession(Request $request, \App\Models\GameSession $session)
+    {
+        $session->delete();
+
+        return back()->with('success', 'Session removed.');
+    }
+
+    public function export(Request $request)
+    {
+        $query = Game::with('creator');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('platform')) {
+            $query->where('platform', $request->platform);
+        }
+        if ($request->filled('date')) {
+            $query->whereDate('scheduled_at', $request->date);
+        }
+
+        $games = $query->latest('scheduled_at')->get();
+
+        return $this->exportCsv($games, [
+            'Name', 'Type', 'Stakes', 'Platform', 'Scheduled', 'Status', 'Players',
+        ], function ($game) {
+            return [
+                $game->name,
+                $game->type,
+                $game->stakes,
+                $game->platform,
+                $game->scheduled_at->format('Y-m-d H:i'),
+                $game->status,
+                $game->sessions_count ?? $game->sessions()->count(),
+            ];
+        }, 'games-' . now()->format('Y-m-d') . '.csv');
     }
 }

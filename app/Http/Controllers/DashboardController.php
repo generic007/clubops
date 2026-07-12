@@ -2,61 +2,55 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agent;
 use App\Models\Player;
 use App\Models\LedgerEntry;
+use App\Models\LedgerLine;
 use App\Models\SupportTicket;
-use App\Models\Reconciliation;
-use App\Models\Promotion;
-use App\Enums\PlayerStatus;
-use App\Enums\TicketStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
         $agent = $request->user();
+        $club = $agent->club;
 
-        // KPI counts
-        $activePlayers = Player::active()->count();
-        $newLeads = Player::where('status', PlayerStatus::Lead)
-            ->where('created_at', '>=', now()->subWeek())
+        // KPIs
+        $totalPlayers = Player::where('club_id', $club->id)->count();
+        $activePlayers = Player::where('club_id', $club->id)->active()->count();
+        $newThisWeek = Player::where('club_id', $club->id)
+            ->where('created_at', '>=', now()->subDays(7))
             ->count();
-        $pendingOnboarding = Player::where('status', PlayerStatus::Pending)->count();
-        $inactivePlayers = Player::inactive()->count();
-        $highRiskPlayers = Player::highRisk()->count();
-        $unresolvedTickets = SupportTicket::open()->count();
-        $reconMismatches = Reconciliation::where('status', 'in_progress')->count();
-        $openPromoLiability = Promotion::where('active', true)
-            ->where('starts_at', '<=', now())
-            ->where(function ($q) { $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()); })
-            ->sum(DB::raw('total_liability - claimed_liability'));
-        $dormantVips = Player::where('status', PlayerStatus::Vip)
-            ->where('last_played_at', '<', now()->subDays(30))
+        $recentEntries = LedgerEntry::where('club_id', $club->id)
+            ->with('player')
+            ->latest()
+            ->limit(10)
+            ->get();
+        $todayVolume = LedgerLine::whereHas('entry', fn($q) =>
+                $q->where('club_id', $club->id)->whereDate('created_at', today())
+            )->sum('debit') + LedgerLine::whereHas('entry', fn($q) =>
+                $q->where('club_id', $club->id)->whereDate('created_at', today())
+            )->sum('credit');
+        $openTickets = SupportTicket::where('club_id', $club->id)
+            ->whereIn('status', ['open', 'in_progress'])
             ->count();
-        $dailyCloseStatus = LedgerEntry::whereDate('entry_date', today())
-            ->where('locked', true)
-            ->exists() ? 'locked' : 'open';
+        $recentPlayers = Player::where('club_id', $club->id)
+            ->whereNotNull('last_played_at')
+            ->latest('last_played_at')
+            ->limit(5)
+            ->get();
 
-        // Recent activity
-        $recentPlayers = Player::latest()->take(10)->get();
-        $recentEntries = LedgerEntry::latest()->take(10)->get();
-        $openTickets = SupportTicket::open()->latest()->take(10)->get();
-
-        // Agent-specific players
-        if ($agent->isAgent()) {
-            $activePlayers = Player::active()->byAgent($agent)->count();
-            $newLeads = Player::where('status', PlayerStatus::Lead)
-                ->byAgent($agent)
-                ->where('created_at', '>=', now()->subWeek())
-                ->count();
-        }
+        // Active players (for quick-actions dropdown)
+        $quickPlayers = Player::where('club_id', $club->id)
+            ->active()
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
 
         return view('dashboard.index', compact(
-            'activePlayers', 'newLeads', 'pendingOnboarding', 'unresolvedTickets',
-            'reconMismatches', 'openPromoLiability', 'dormantVips', 'dailyCloseStatus',
-            'recentPlayers', 'recentEntries', 'openTickets', 'agent'
+            'totalPlayers', 'activePlayers', 'newThisWeek',
+            'recentEntries', 'todayVolume', 'openTickets',
+            'recentPlayers', 'quickPlayers', 'club'
         ));
     }
 }

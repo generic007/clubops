@@ -7,11 +7,13 @@ use App\Models\Player;
 use App\Enums\TicketStatus;
 use App\Enums\TicketType;
 use App\Http\Requests\StoreTicketRequest;
+use App\Traits\ExportsCsv;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SupportTicketController extends Controller
 {
+    use ExportsCsv;
     public function index(Request $request)
     {
         $query = SupportTicket::with(['player', 'assignedTo']);
@@ -101,5 +103,37 @@ class SupportTicketController extends Controller
         } while (SupportTicket::where('ticket_number', $number)->exists());
 
         return $number;
+    }
+
+    public function export(Request $request)
+    {
+        $query = SupportTicket::with(['player', 'assignedTo']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $tickets = $query->latest()->get();
+
+        return $this->exportCsv($tickets, [
+            'Ticket #', 'Subject', 'Player', 'Type', 'Priority', 'Status', 'Assigned To', 'Created',
+        ], function ($ticket) {
+            return [
+                $ticket->ticket_number,
+                $ticket->subject,
+                $ticket->player?->name ?? '',
+                $ticket->type->value,
+                $ticket->priority,
+                $ticket->status->value,
+                $ticket->assignedTo?->name ?? '',
+                $ticket->created_at->format('Y-m-d'),
+            ];
+        }, 'tickets-' . now()->format('Y-m-d') . '.csv');
     }
 }

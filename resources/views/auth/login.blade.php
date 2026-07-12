@@ -498,7 +498,7 @@
             <div class="login-footer" style="margin-top: 32px;">
                 <div style="margin-bottom: 16px; padding: 16px; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.15); border-radius: var(--radius-md);">
                     <div style="font-size: .85rem; color: #94a3b8; margin-bottom: 8px;">Don't have a club yet?</div>
-                    <a href="{{ route('setup') }}" style="display: inline-block; background: linear-gradient(135deg, var(--primary), #2563eb); color: #fff; padding: 10px 24px; border-radius: var(--radius-pill); font-weight: 700; font-size: .88rem; text-decoration: none; transition: all .25s; box-shadow: 0 4px 12px rgba(59,130,246,.25);">
+                    <a href="{{ route('register') }}" style="display: inline-block; background: linear-gradient(135deg, var(--primary), #2563eb); color: #fff; padding: 10px 24px; border-radius: var(--radius-pill); font-weight: 700; font-size: .88rem; text-decoration: none; transition: all .25s; box-shadow: 0 4px 12px rgba(59,130,246,.25);">
                         🚀 Create Your Club
                     </a>
                     <div style="font-size: .75rem; color: #64748b; margin-top: 6px;">Takes under a minute. Free to start.</div>

@@ -5,7 +5,20 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">🎁 Promotions</h1>
-    <a href="{{ route('promotions.create') }}" class="btn btn-primary">+ New Promotion</a>
+    <div class="d-flex gap-2 align-items-center">
+        @x('export-button', ['route' => route('promotions.export')])
+        <a href="{{ route('promotions.create') }}" class="btn btn-primary">+ New Promotion</a>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="d-flex gap-3 align-items-start mb-4 flex-wrap">
+    @x('search-bar', ['route' => route('promotions.index'), 'placeholder' => 'Search promotions...'])
+</div>
+
+<!-- Loading Skeleton -->
+<div id="loading-promotions" x-data x-init="$el.remove()">
+    @x('skeleton-table', ['rows' => 5, 'cols' => 8])
 </div>
 
 <div class="card shadow-sm">

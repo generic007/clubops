@@ -1,63 +1,119 @@
-# ClubOps OS — Private Poker Club Operations System
+# 🃏 ClubOps OS — Private Poker Club Operations System
 
-**Date:** 2026-07-01  
-**Stack:** Laravel 11, MySQL, Blade + Bootstrap 5, Alpine.js  
-**Deployment:** DreamHost Shared Hosting  
-**What it is:** Operations, CRM, ledger, reconciliation, promotion, and reporting for a private poker club.  
-**What it is NOT:** Poker bot, cashier, payment processor, platform automation tool.
+> Operations, CRM, ledger, reconciliation, promotion, and reporting for a private poker club.
+
+**Status:** 🔴 Pre-Deployment (blocked on DreamHost SSH) | **Stack:** Laravel 11, MySQL 8, Blade + Bootstrap 5, Alpine.js | **Deployment:** DreamHost Shared Hosting
+
+---
+
+## Screenshots
+
+*Screenshots coming soon — deploy first, then capture.*
+
+---
+
+## What It Is
+
+ClubOps OS is a complete operations platform for a private poker club. It handles CRM, financial ledger, game session management, promotions, reconciliation, player intelligence, and compliance — all in one application.
+
+**What it is NOT:** A poker bot, cashier, payment processor, or platform automation tool. This system is for back-office operations and recordkeeping only.
+
+---
+
+## Features
+
+### 👤 Player CRM
+- **Player profiles** — contact info, join date, status, notes
+- **Platform account linking** — connect external platform accounts per player
+- **Tags** — categorize players (regular, VIP, new, flagged)
+- **Notes** — staff observations, player preferences, seat preferences
+- **Dormant player detection** — `artisan clubops:check-dormant-players` flags inactive 30+ days
+- **Player export** — `artisan clubops:export-players` CSV export
+
+### 📊 Ledger & Financials
+- **Ledger accounts** — per-player balance tracking
+- **Ledger entries** — immutable financial records (DECIMAL(18,2) only, never floats)
+- **Ledger lines** — individual line items with full audit trail
+- **Entry immutability** — once written, entries cannot be deleted. Corrections require reversal entries
+- **Every entry has:** actor, timestamp, reason
+- **Daily close** — locks a day from further edits via `artisan clubops:daily-close`
+- **Balance recalculation** — `artisan clubops:recalculate-balances` rebuilds all account balances
+- **Ledger audit** — `artisan clubops:audit-ledger` verifies ledger integrity
+
+### ♠️ Game & Session Management
+- **Games CRUD** — define game types (Hold'em, Omaha, mixed games)
+- **Sessions** — record game sessions with date, time, game type, participants
+- **Session attendance** — link players to specific sessions
+
+### 📐 Reconciliation
+- **Reconciliations** — end-of-day/week balance checks
+- **Reconciliation items** — line-by-line matching of expected vs. actual
+- **Discrepancy tracking** — identify and investigate variances
+
+### 🏆 Promotions & Redemptions
+- **Promotions** — create time-limited or permanent promos (high-hand bonuses, bad-beat jackpots, etc.)
+- **Redemptions** — track when players claim promotional rewards
+- **Eligibility** — link promotions to player tags or game types
+
+### 🚩 Risk & Compliance
+- **Risk flags** — flag players for unusual activity or behavior patterns
+- **Compliance profiles** — per-player compliance settings
+- **Exclusions** — self-exclusion and cool-off period management
+- **Responsible gaming statuses** — cool-off, self-exclusion with expiry dates
+- **Audit log** — full trail of all compliance actions
+
+### 🎫 Support Tickets
+- **Ticket management** — create, assign, resolve support tickets
+- **Comments** — threaded discussion per ticket
+- **Attachments** — upload screenshots, documents, evidence
+- **Status tracking** — open, in-progress, resolved, closed
+
+### 📨 Communication
+- **Templates** — reusable message templates for common communications
+- **Message drafts** — save and edit messages before sending
+
+### 📤 Import System
+- **Import framework** — upload CSV/XLSX data files
+- **Preview before import** — review mapped columns
+- **Import rows** — row-level tracking with status and errors
+- **Rollback support** — undo an import if something goes wrong
+
+### 📱 Mobile PWA
+- Fully responsive — works on iPhone and Android
+- Installable as PWA: Share → Add to Home Screen
+- Camera upload for screenshots and evidence
+- Touch-friendly forms and navigation
+
+### 🔐 Authentication & Roles
+- **Agent-based auth** — secure session-based login
+- **Owner role** — full system access
+- **Manager role** — operational access, restricted financial controls
+- **Role-based middleware** — fine-grained access control on routes
 
 ---
 
 ## Quick Start
 
-### 1. Create DreamHost MySQL Database
+### Prerequisites
+- DreamHost shared hosting (or any PHP 8.2+ server)
+- MySQL 8+
+- SSH access (**currently blocked — deployment pending**)
+
+### 1. Create Database
 - DreamHost Panel → Goodies → MySQL Databases
 - Create database: `clubops_db`
 - Create user: `clubops_user`
 - Note the hostname (e.g., `mysql.clubops.example.com`)
 
-### 2. SSH into DreamHost
+### 2. Deploy (when SSH is available)
 ```bash
-ssh user@example.dreamhost.com
-```
-
-### 3. Check PHP Version
-```bash
-/usr/bin/php8.2 -v
-ls /usr/bin/php*
-```
-Minimum: **PHP 8.2+**
-
-### 4. Install Composer (if not present)
-```bash
-cd ~
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php composer-setup.php --install-dir=~/bin
-php -r "unlink('composer-setup.php');"
-export PATH="$HOME/bin:$PATH"
-```
-
-### 5. Deploy Files
-```bash
-# Option A: Git clone
+ssh user@dreamhost.com
 cd ~/clubops.example.com
-git clone https://github.com/generic007/clubops.git .
-
-# Option B: rsync from local
 rsync -avz --exclude node_modules --exclude .git --exclude .env \
-  ./ user@example.dreamhost.com:~/clubops.example.com/
-```
-
-### 6. Install Dependencies
-```bash
-cd ~/clubops.example.com
+  ./ user@dreamhost.com:~/clubops.example.com/
 composer install --no-dev --optimize-autoloader
-```
-
-### 7. Configure Environment
-```bash
 cp .env.example .env
-# Edit .env with your DreamHost MySQL credentials:
+# Edit .env with database credentials:
 # APP_ENV=production
 # APP_DEBUG=false
 # APP_URL=https://clubops.example.com
@@ -66,58 +122,45 @@ cp .env.example .env
 # DB_DATABASE=clubops_db
 # DB_USERNAME=clubops_user
 # DB_PASSWORD=your_password
-```
-
-### 8. Generate App Key
-```bash
 php artisan key:generate
-```
-
-### 9. Run Migrations
-```bash
 php artisan migrate --force
-```
-
-### 10. Seed Admin Account
-```bash
 php artisan db:seed --class=DatabaseSeeder
 ```
-Default accounts:
-- `owner@clubops.local` / `change-me` (Owner role)
-- `manager@clubops.local` / `change-me` (Manager role)
+
+Set document root to `~/clubops.example.com/public` in DreamHost panel.
+
+### 3. Login
+| Role    | Email                      | Password   |
+|---------|----------------------------|------------|
+| Owner   | `owner@clubops.local`      | `change-me` |
+| Manager | `manager@clubops.local`    | `change-me` |
 
 **Change passwords immediately on first login.**
 
-### 11. Set Permissions
-```bash
-chmod -R 775 storage bootstrap/cache
-```
-
-### 12. Point Domain to Laravel
-- DreamHost Panel → Manage Domains
-- Set document root to: `/home/USER/clubops.example.com/public`
-
-### 13. Configure Cron
+### 4. Configure Cron
 DreamHost Panel → Advanced → Cron Jobs → Add:
 ```
 Command: cd /home/USER/clubops.example.com && /usr/bin/php8.2 artisan schedule:run >> /dev/null 2>&1
 Frequency: Every 5 minutes
 ```
 
-### 14. Verify
-Visit `https://clubops.example.com` and log in with the owner account.
-
 ---
 
-## System Architecture
+## Architecture
 
-### Three Surfaces
-1. **Desktop Web App** — Full admin dashboard (Laravel Blade + Bootstrap 5)
-2. **Mobile PWA** — Installable on iPhone/Android home screen (same codebase, responsive)
-3. **Future Native App** — Capacitor wrapper or Flutter (uses Laravel API, post-MVP)
-
-### Database (26 tables)
-Agents, Players, Platform Accounts, Tags, Notes, Ledger Accounts, Ledger Entries, Ledger Lines, Reconciliations, Reconciliation Items, Promotions, Redemptions, Games, Sessions, Support Tickets, Comments, Attachments, Imports, Import Rows, Risk Flags, Communication Templates, Message Drafts, Compliance Profiles, Exclusions, Audit Logs
+### Database (25 tables)
+| Group | Tables |
+|-------|--------|
+| **Auth** | Agents |
+| **CRM** | Players, Platform Accounts, Tags, Notes |
+| **Ledger** | Ledger Accounts, Ledger Entries, Ledger Lines |
+| **Operations** | Games, Sessions |
+| **Financial** | Reconciliations, Reconciliation Items |
+| **Promotions** | Promotions, Redemptions |
+| **Support** | Support Tickets, Comments, Attachments |
+| **Data** | Imports, Import Rows |
+| **Compliance** | Risk Flags, Communication Templates, Message Drafts, Compliance Profiles, Exclusions |
+| **Audit** | Audit Logs |
 
 ### Ledger Rules (Non-Negotiable)
 - **DECIMAL(18,2) only.** Never FLOAT/DOUBLE.
@@ -132,6 +175,20 @@ Agents, Players, Platform Accounts, Tags, Notes, Ledger Accounts, Ledger Entries
 - No platform term evasion
 - Label ledger as operational recordkeeping
 - Responsible gaming statuses (cool-off, self-exclusion)
+
+---
+
+## Artisan Commands
+
+```bash
+php artisan clubops:daily-close           # Lock today's ledger
+php artisan clubops:recalculate-balances  # Rebuild all account balances
+php artisan clubops:audit-ledger          # Verify ledger integrity
+php artisan clubops:export-players        # Export player list as CSV
+php artisan clubops:check-dormant-players # Find players inactive 30+ days
+php artisan db:seed --class=DatabaseSeeder # Create admin accounts
+php artisan db:seed --class=DemoSeeder    # Seed demo data for testing
+```
 
 ---
 
@@ -175,38 +232,12 @@ php artisan up
 
 ---
 
-## Artisan Commands
-
-```bash
-php artisan clubops:daily-close           # Lock today's ledger
-php artisan clubops:recalculate-balances  # Rebuild all account balances
-php artisan clubops:audit-ledger           # Verify ledger integrity
-php artisan clubops:export-players         # Export player list as CSV
-php artisan clubops:check-dormant-players  # Find players inactive 30+ days
-php artisan db:seed --class=DemoSeeder     # Seed demo data for testing
-```
-
----
-
-## Mobile PWA
-
-ClubOps is a Progressive Web App:
-1. Visit `https://clubops.example.com` on iPhone/Android
-2. Tap Share → Add to Home Screen
-3. Use like a native app
-4. Camera upload for screenshots/evidence
-5. Touch-friendly forms and navigation
-
----
-
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
 | White screen after deploy | Check `storage/logs/laravel.log`. Run `php artisan optimize:clear` |
 | 500 error on login | Run `php artisan migrate --force`. Check `.env` DB credentials |
-| Uploads not working | Check `storage/app/private/` permissions (`chmod -R 775`) |
-| Cron not running | Verify in DreamHost panel. Check `storage/logs/laravel.log` |
 | Missing CSS/JS | Assets use CDN. Check internet connectivity |
 | SwiftMailer errors | Configure MAIL_* in `.env` or set `MAIL_DRIVER=log` |
 

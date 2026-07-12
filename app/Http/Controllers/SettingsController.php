@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agent;
+use App\Models\Club;
 use App\Models\LedgerAccount;
 use App\Models\Player;
 use App\Models\Tag;
@@ -14,17 +15,21 @@ class SettingsController extends Controller
 {
     public function index(Request $request)
     {
+        $agent = $request->user();
+        $club = $agent->club;
+
         $stats = [
-            'total_agents' => Agent::count(),
-            'total_players' => Player::count(),
+            'total_agents' => Agent::where('club_id', $club->id)->count(),
+            'total_players' => Player::where('club_id', $club->id)->count(),
             'total_accounts' => LedgerAccount::count(),
-            'total_tags' => Tag::count(),
-            'total_templates' => CommunicationTemplate::count(),
+            'total_tags' => Tag::where('club_id', $club->id)->count(),
+            'total_templates' => CommunicationTemplate::where('club_id', $club->id)->count(),
         ];
 
-        $agents = Agent::withCount('players')->get();
+        $agents = Agent::where('club_id', $club->id)->withCount('players')->get();
         $ledgerAccounts = LedgerAccount::all();
+        $playersWithPortal = Player::where('club_id', $club->id)->where('can_login', true)->get();
 
-        return view('settings.index', compact('stats', 'agents', 'ledgerAccounts'));
+        return view('settings.index', compact('stats', 'agents', 'ledgerAccounts', 'club', 'playersWithPortal'));
     }
 }

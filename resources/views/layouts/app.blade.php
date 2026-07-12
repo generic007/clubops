@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
@@ -84,9 +84,9 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
+        /* Prevent flash-of-wrong-theme */
+        html[data-bs-theme="dark"] body,
         body.dark,
-        [data-bs-theme="dark"] body,
-        html[data-bs-theme="dark"] body {
             --bg: #0a0f1e;
             --card-bg: #1e293b;
             --text-primary: #e2e8f0;
@@ -769,13 +769,13 @@
         .badge.bg-dark { background: rgba(15, 23, 42, 0.12) !important; color: #0f172a !important; }
         .badge.bg-light { background: rgba(241, 245, 249, 0.8) !important; color: #475569 !important; }
 
-        body.dark .badge.bg-primary { background: rgba(59, 130, 246, 0.2) !important; color: #93c5fd !important; }
-        body.dark .badge.bg-secondary { background: rgba(100, 116, 139, 0.2) !important; color: #94a3b8 !important; }
-        body.dark .badge.bg-success { background: rgba(16, 185, 129, 0.15) !important; color: #6ee7b7 !important; }
-        body.dark .badge.bg-warning { background: rgba(245, 158, 11, 0.2) !important; color: #fcd34d !important; }
-        body.dark .badge.bg-danger { background: rgba(239, 68, 68, 0.2) !important; color: #fca5a5 !important; }
-        body.dark .badge.bg-info { background: rgba(6, 182, 212, 0.2) !important; color: #67e8f9 !important; }
-        body.dark .badge.bg-dark { background: rgba(255, 255, 255, 0.1) !important; color: #e2e8f0 !important; }
+        body.dark .badge.bg-primary { background: rgba(59, 130, 246, 0.35) !important; color: #b9d8ff !important; }
+        body.dark .badge.bg-secondary { background: rgba(100, 116, 139, 0.35) !important; color: #cbd5e1 !important; }
+        body.dark .badge.bg-success { background: rgba(16, 185, 129, 0.3) !important; color: #96f0c8 !important; }
+        body.dark .badge.bg-warning { background: rgba(245, 158, 11, 0.35) !important; color: #fde68a !important; }
+        body.dark .badge.bg-danger { background: rgba(239, 68, 68, 0.35) !important; color: #fecaca !important; }
+        body.dark .badge.bg-info { background: rgba(6, 182, 212, 0.35) !important; color: #a5f3fc !important; }
+        body.dark .badge.bg-dark { background: rgba(255, 255, 255, 0.2) !important; color: #f1f5f9 !important; }
 
         /* Status badges */
         .badge-status {
@@ -797,11 +797,11 @@
         .badge-open { background: rgba(59, 130, 246, 0.12); color: #1d4ed8; }
         .badge-closed { background: rgba(100, 116, 139, 0.12); color: #475569; }
 
-        body.dark .badge-active { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
-        body.dark .badge-lead { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-        body.dark .badge-pending { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-        body.dark .badge-inactive { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
-        body.dark .badge-vip { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+        body.dark .badge-active { background: rgba(16, 185, 129, 0.3); color: #96f0c8; }
+        body.dark .badge-lead { background: rgba(245, 158, 11, 0.35); color: #fde68a; }
+        body.dark .badge-pending { background: rgba(59, 130, 246, 0.35); color: #b9d8ff; }
+        body.dark .badge-inactive { background: rgba(100, 116, 139, 0.35); color: #cbd5e1; }
+        body.dark .badge-vip { background: rgba(245, 158, 11, 0.35); color: #fde68a; }
         body.dark .badge-suspended,
         body.dark .badge-banned,
         body.dark .badge-excluded { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
@@ -1046,10 +1046,10 @@
             color: #155e75;
         }
 
-        body.dark .alert-success { background: rgba(16, 185, 129, 0.12); color: #6ee7b7; }
-        body.dark .alert-danger { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
-        body.dark .alert-warning { background: rgba(245, 158, 11, 0.12); color: #fcd34d; }
-        body.dark .alert-info { background: rgba(6, 182, 212, 0.12); color: #67e8f9; }
+        body.dark .alert-success { background: rgba(16, 185, 129, 0.25); color: #96f0c8; }
+        body.dark .alert-danger { background: rgba(239, 68, 68, 0.25); color: #fecaca; }
+        body.dark .alert-warning { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
+        body.dark .alert-info { background: rgba(6, 182, 212, 0.25); color: #a5f3fc; }
 
         .alert-dismissible .btn-close {
             padding: 16px;
@@ -1487,6 +1487,18 @@
             }
         }
     </style>
+    <script>
+        (function(){
+            var s = localStorage.getItem('clubops-theme');
+            if (!s && window.matchMedia('(prefers-color-scheme:dark)').matches) { s = 'dark'; localStorage.setItem('clubops-theme', 'dark'); }
+            if (s === 'dark') {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                document.addEventListener('DOMContentLoaded', function(){ document.body.classList.add('dark'); });
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+            }
+        })();
+    </script>
     @stack('styles')
 </head>
 <body>
@@ -1521,6 +1533,12 @@
                     <span class="nav-icon">👥</span>
                     <span class="nav-text">Players</span>
                 </a>
+                @if(\App\ClubOpsEdition::isPro() && !auth()->user()->club?->single_club)
+                <a href="{{ route('invitations.index') }}" class="{{ request()->routeIs('teams*', 'invitations*') ? 'active' : '' }}">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">Team</span>
+                </a>
+                @endif
                 <a href="{{ route('agents.index') }}" class="{{ request()->routeIs('agents.*') ? 'active' : '' }}">
                     <span class="nav-icon">🤝</span>
                     <span class="nav-text">Agents</span>
@@ -1570,6 +1588,10 @@
                     <span class="nav-icon">🎮</span>
                     <span class="nav-text">Games</span>
                 </a>
+                <a href="{{ route('billing.index') }}" class="{{ request()->routeIs('billing.*') ? 'active' : '' }}">
+                    <span class="nav-icon">💳</span>
+                    <span class="nav-text">Subscription</span>
+                </a>
                 <a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-text">Settings</span>
@@ -1598,6 +1620,9 @@
                         @csrf
                         <button type="submit" class="logout-btn">Sign Out</button>
                     </form>
+                </div>
+                <div style="margin-top:8px; display:flex; align-items:center; gap:6px; font-size:.68rem; color:#6ee7b7;">
+                    🔒 E2E Encrypted — {{ \App\ClubOpsEdition::label() }}
                 </div>
             </div>
         </aside>
@@ -1669,6 +1694,16 @@
                 <span class="nav-icon">🎫</span>
                 <span class="nav-label">Tickets</span>
             </a>
+            @if(\App\ClubOpsEdition::isPro() && !auth()->user()->club?->single_club)
+            <a href="{{ route('invitations.index') }}" class="{{ request()->routeIs('invitations*', 'teams*') ? 'active' : '' }}">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Team</span>
+            </a>
+            @endif
+            <a href="{{ route('billing.index') }}" class="{{ request()->routeIs('billing.*') ? 'active' : '' }}">
+                <span class="nav-icon">💳</span>
+                <span class="nav-label">Billing</span>
+            </a>
             <a href="{{ route('compliance.index') }}" class="{{ request()->routeIs('compliance.*') ? 'active' : '' }}">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-label">More</span>
@@ -1681,21 +1716,6 @@
     ================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- Dark Mode ---
-        (function() {
-            const stored = localStorage.getItem('clubops-theme');
-            if (stored === 'dark') {
-                document.body.classList.add('dark');
-                document.documentElement.setAttribute('data-bs-theme', 'dark');
-            } else if (stored === 'light') {
-                document.documentElement.setAttribute('data-bs-theme', 'light');
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.body.classList.add('dark');
-                document.documentElement.setAttribute('data-bs-theme', 'dark');
-                localStorage.setItem('clubops-theme', 'dark');
-            }
-        })();
-
         function toggleDarkMode() {
             document.body.classList.toggle('dark');
             const isDark = document.body.classList.contains('dark');

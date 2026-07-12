@@ -5,7 +5,15 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">🎫 Support Tickets</h1>
-    <a href="{{ route('tickets.create') }}" class="btn btn-primary">+ New Ticket</a>
+    <div class="d-flex gap-2 align-items-center">
+        @x('export-button', ['route' => route('tickets.export')])
+        <a href="{{ route('tickets.create') }}" class="btn btn-primary">+ New Ticket</a>
+    </div>
+</div>
+
+<!-- Search + Filters -->
+<div class="d-flex gap-3 align-items-start mb-4 flex-wrap">
+    @x('search-bar', ['route' => route('tickets.index'), 'placeholder' => 'Search tickets...'])
 </div>
 
 <!-- Filters -->
@@ -49,6 +57,11 @@
             </div>
         </form>
     </div>
+</div>
+
+<!-- Loading Skeleton -->
+<div id="loading-tickets" x-data x-init="$el.remove()">
+    @x('skeleton-table', ['rows' => 5, 'cols' => 8])
 </div>
 
 <!-- Tickets Table -->

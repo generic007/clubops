@@ -6,10 +6,11 @@
     "license": "proprietary",
     "require": {
         "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.8",
+        "laravel/cashier": "^16.6",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.9",
-        "guzzlehttp/guzzle": "^7.8"
+        "laravel/tinker": "^2.9"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

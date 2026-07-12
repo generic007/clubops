@@ -623,7 +623,7 @@
                 </span>
             </a>
             <div class="nav-links">
-                <a href="{{ route('setup') }}">Get Started</a>
+                <a href="{{ route('register') }}">Get Started</a>
                 <a href="{{ route('login') }}" class="nav-sign-in">Sign In</a>
             </div>
         </nav>
@@ -649,7 +649,7 @@
                     </p>
 
                     <div class="cta-group">
-                        <a href="{{ route('setup') }}" class="cta-primary">
+                        <a href="{{ route('register') }}" class="cta-primary">
                             🚀 Create Your Club
                         </a>
                         <a href="{{ route('login') }}" class="cta-secondary">
@@ -739,7 +739,7 @@
             <div class="footer-inner">
                 <span class="edition-label">🔒 {{ \App\ClubOpsEdition::label() }}</span>
                 <span class="divider"></span>
-                <a href="{{ route('setup') }}">Create Your Club</a>
+                <a href="{{ route('register') }}">Create Your Club</a>
                 <span class="divider"></span>
                 <a href="{{ route('login') }}">Sign In</a>
             </div>

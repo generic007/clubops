@@ -14,6 +14,7 @@ use App\Services\PlayerCrmService;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +36,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // NIST SP 800-63B compliant password defaults
+        Password::defaults(function () {
+            return Password::min(8)
+                ->max(64)
+                ->uncompromised();
+        });
+
         // Register policies
         Gate::policy(Player::class, PlayerPolicy::class);
         Gate::policy(LedgerEntry::class, LedgerEntryPolicy::class);

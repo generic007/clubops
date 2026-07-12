@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Agent;
 use App\Services\AuditService;
 use App\Http\Requests\StoreAgentRequest;
+use App\Traits\ExportsCsv;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AgentController extends Controller
 {
+    use ExportsCsv;
     protected AuditService $audit;
 
     public function __construct(AuditService $audit)
@@ -100,5 +102,24 @@ class AgentController extends Controller
 
         return redirect()->route('agents.index')
             ->with('success', "Agent '{$agent->name}' deactivated.");
+    }
+
+    public function export()
+    {
+        $agents = Agent::withCount('players')->latest()->get();
+
+        return $this->exportCsv($agents, [
+            'Name', 'Email', 'Role', 'Active', 'Players', 'Last Login', 'Created',
+        ], function ($agent) {
+            return [
+                $agent->name,
+                $agent->email,
+                $agent->role?->value ?? '',
+                $agent->active ? 'Yes' : 'No',
+                $agent->players_count,
+                $agent->last_login_at?->format('Y-m-d') ?? '',
+                $agent->created_at->format('Y-m-d'),
+            ];
+        }, 'agents-' . now()->format('Y-m-d') . '.csv');
     }
 }

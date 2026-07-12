@@ -135,7 +135,7 @@ class ReportController extends Controller
                     $row->cap ?? 'Unlimited',
                     $row->claimed_liability,
                     $row->cap ? max(0, $row->cap - $row->claimed_liability) : 'N/A',
-                    "{$row->starts_at->format('Y-m-d')} - {$row->ends_at?->format('Y-m-d') ?? '∞'}",
+                    ($row->starts_at->format('Y-m-d') . ' - ' . ($row->ends_at? $row->ends_at->format('Y-m-d') : '∞')),
                 ];
             }, "promo-liability.csv");
         }

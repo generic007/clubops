@@ -5,7 +5,15 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">🎮 Games</h1>
-    <a href="{{ route('games.create') }}" class="btn btn-primary">+ New Game</a>
+    <div class="d-flex gap-2 align-items-center">
+        @x('export-button', ['route' => route('games.export')])
+        <a href="{{ route('games.create') }}" class="btn btn-primary">+ New Game</a>
+    </div>
+</div>
+
+<!-- Search + Filters -->
+<div class="d-flex gap-3 align-items-start mb-4 flex-wrap">
+    @x('search-bar', ['route' => route('games.index'), 'placeholder' => 'Search games...'])
 </div>
 
 <!-- Filters -->
@@ -45,6 +53,11 @@
             </div>
         </form>
     </div>
+</div>
+
+<!-- Loading Skeleton -->
+<div id="loading-games" x-data x-init="$el.remove()">
+    @x('skeleton-table', ['rows' => 5, 'cols' => 7])
 </div>
 
 <!-- Games Table -->

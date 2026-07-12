@@ -7,10 +7,12 @@ use App\Models\Player;
 use App\Services\LedgerService;
 use App\Models\PromotionRedemption;
 use App\Enums\TransactionType;
+use App\Traits\ExportsCsv;
 use Illuminate\Http\Request;
 
 class PromotionController extends Controller
 {
+    use ExportsCsv;
     protected LedgerService $ledger;
 
     public function __construct(LedgerService $ledger)
@@ -155,5 +157,26 @@ class PromotionController extends Controller
 
         return redirect()->route('promotions.show', $promotion)
             ->with('success', "{$request->amount} redeemed for {$player->name}.");
+    }
+
+    public function export()
+    {
+        $promotions = Promotion::withCount('redemptions')->latest()->get();
+
+        return $this->exportCsv($promotions, [
+            'Name', 'Type', 'Value', 'Cap', 'Claimed', 'Starts', 'Ends', 'Active', 'Redemptions',
+        ], function ($promo) {
+            return [
+                $promo->name,
+                $promo->type->value,
+                $promo->value,
+                $promo->cap ?? 'Uncapped',
+                $promo->claimed_liability ?? 0,
+                $promo->starts_at->format('Y-m-d'),
+                $promo->ends_at?->format('Y-m-d') ?? '∞',
+                $promo->active ? 'Yes' : 'No',
+                $promo->redemptions_count,
+            ];
+        }, 'promotions-' . now()->format('Y-m-d') . '.csv');
     }
 }

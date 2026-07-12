@@ -39,7 +39,24 @@
                     <tr><td class="text-muted">Compliance</td><td>{!! $player->compliance_complete ? '✅ Complete' : '⏳ Pending' !!}</td></tr>
                     <tr><td class="text-muted">Last Played</td><td>{{ $player->last_played_at?->diffForHumans() ?? 'Never' }}</td></tr>
                     <tr><td class="text-muted">Last Contact</td><td>{{ $player->last_contacted_at?->diffForHumans() ?? 'Never' }}</td></tr>
+                    @if(\App\ClubOpsEdition::isPro())
+                    <tr><td class="text-muted">Portal Access</td>
+                        <td>
+                            @if($player->can_login)
+                                <span class="text-success">✅ Enabled</span>
+                                <br><small class="text-muted">Last login: {{ $player->last_login_at?->diffForHumans() ?? 'Never' }}</small>
+                            @else
+                                <span class="text-muted">Disabled</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endif
                 </table>
+                @can('update', $player) @if(!$player->can_login && \App\ClubOpsEdition::isPro())
+                    <button class="btn btn-sm btn-success w-100 mt-2" data-bs-toggle="modal" data-bs-target="#portalModal">
+                        🔓 Enable Player Portal
+                    </button>
+                @endif @endcan
             </div>
         </div>
     </div>
@@ -186,4 +203,44 @@
         </div>
     </div>
 </div>
+
+@if(\App\ClubOpsEdition::isPro())
+<!-- Enable Portal Modal -->
+@can('update', $player)
+<div class="modal fade" id="portalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <form method="POST" action="{{ route('players.enable-portal', $player) }}">
+                @csrf
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">🔓 Enable Player Portal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        This allows <strong>{{ $player->name }}</strong> to log in and view their
+                        balance, transactions, promotions, and support tickets.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label">Set a Password</label>
+                        <input type="password" name="password" class="form-control bg-dark text-light border-secondary"
+                               placeholder="At least 8 characters" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" name="password_confirmation" class="form-control bg-dark text-light border-secondary"
+                               placeholder="Same password again" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Enable Portal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
+@endif
+
 @endsection

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@if(isset($isMultiTenant) && $isMultiTenant) Create Your Club — ClubOps OS @else Set Up — ClubOps OS @endif</title>
+    <title>@if(isset($hideModeSelector) && $hideModeSelector) Create Your Club — ClubOps OS @elseif(isset($isMultiTenant) && $isMultiTenant) Create Your Club — ClubOps OS @else Set Up — ClubOps OS @endif</title>
     <meta name="theme-color" content="#0f172a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,7 +86,7 @@
         <div class="card">
             <div class="brand">
                 <div class="icon">♠</div>
-                <h1>{{ isset($isMultiTenant) && $isMultiTenant ? 'Create Your Club' : 'Set Up ClubOps' }}</h1>
+                <h1>@if(isset($hideModeSelector) && $hideModeSelector) Create Your Club @elseif(isset($isMultiTenant) && $isMultiTenant) Create Your Club @else Set Up ClubOps @endif</h1>
                 <p>{{ isset($isMultiTenant) && $isMultiTenant ? 'Name your club and create the owner account.' : 'Create your owner account. A default club will be created for you.' }}</p>
             </div>
 
@@ -101,7 +101,7 @@
                 <div class="error-box">⚠️ {{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('setup.store') }}">
+            <form method="POST" action="{{ route(isset($hideModeSelector) && $hideModeSelector ? 'register.store' : 'setup.store') }}">
                 @csrf
                 <input type="hidden" name="multi_tenant" value="{{ isset($isMultiTenant) && $isMultiTenant ? '1' : '0' }}">
 

@@ -3,25 +3,44 @@
 namespace App\Models;
 
 use App\Enums\AgentRole;
+use App\Models\Club;
+use App\Models\Traits\Encryptable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
 class Agent extends Authenticatable
 {
     use SoftDeletes;
+    use Encryptable;
+    use Notifiable;
+
+    protected $table = 'agents';
+
+    protected array $encryptable = ['name', 'phone'];
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'phone', 'active', 'created_by', 'last_login_at',
+        'name', 'email', 'password', 'role', 'phone', 'active',
+        'created_by', 'last_login_at', 'club_id',
+        'commission_balance', 'last_settled_at',
     ];
 
     protected $casts = [
         'role' => AgentRole::class,
         'active' => 'boolean',
+        'commission_balance' => 'decimal:2',
         'last_login_at' => 'datetime',
+        'last_settled_at' => 'datetime',
     ];
 
     protected $hidden = ['password', 'remember_token'];
+
+    public function club(): BelongsTo
+    {
+        return $this->belongsTo(Club::class);
+    }
 
     public function players(): HasMany
     {

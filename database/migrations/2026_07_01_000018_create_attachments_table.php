@@ -20,8 +20,6 @@ return new class extends Migration
             $table->string('path');
             $table->text('notes')->nullable();
             $table->timestamps();
-
-            $table->index(['attachable_type', 'attachable_id']);
         });
     }
 

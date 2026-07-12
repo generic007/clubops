@@ -14,8 +14,6 @@ return new class extends Migration
             $table->morphs('author');
             $table->text('body');
             $table->timestamps();
-
-            $table->index(['author_type', 'author_id']);
         });
     }
 

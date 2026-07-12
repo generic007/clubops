@@ -4,31 +4,46 @@ namespace App\Models;
 
 use App\Enums\PlayerStatus;
 use App\Enums\RiskLevel;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Club;
+use App\Models\Traits\Encryptable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Player extends Model
+class Player extends Authenticatable
 {
     use SoftDeletes;
+    use Encryptable;
+
+    protected array $encryptable = ['name', 'preferred_name', 'phone', 'email', 'notes'];
 
     protected $fillable = [
-        'name', 'preferred_name', 'phone', 'email', 'status',
-        'referral_source', 'agent_id', 'assigned_admin_id',
+        'name', 'preferred_name', 'phone', 'email', 'password', 'can_login',
+        'status', 'referral_source', 'agent_id', 'assigned_admin_id',
         'risk_status', 'last_contacted_at', 'last_played_at',
         'compliance_complete', 'notes', 'preferred_game', 'preferred_stakes',
+        'club_id',
     ];
 
     protected $casts = [
         'status' => PlayerStatus::class,
         'compliance_complete' => 'boolean',
+        'can_login' => 'boolean',
         'risk_status' => RiskLevel::class,
         'last_contacted_at' => 'datetime',
         'last_played_at' => 'datetime',
+        'last_login_at' => 'datetime',
     ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    public function club(): BelongsTo
+    {
+        return $this->belongsTo(Club::class);
+    }
 
     public function platformAccounts(): HasMany
     {
