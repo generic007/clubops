@@ -1,0 +1,37 @@
+#!/bin/bash
+# Pre-commit hook: Block .env files from being committed
+# This prevents secret leaks like the one on 2026-07-11
+
+BLOCKED_PATTERNS=(
+  ".env.production"
+  ".env.free"
+  ".env.staging"
+  ".env.local"
+  ".env.dev"
+  ".env.*"
+)
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+
+BLOCKED=()
+for pattern in "${BLOCKED_PATTERNS[@]}"; do
+  for file in $STAGED; do
+    # Use shell glob matching — if the pattern matches the filename (not path), block it
+    case "$(basename "$file")" in
+      $pattern)
+        BLOCKED+=("$file")
+        ;;
+    esac
+  done
+done
+
+if [ ${#BLOCKED[@]} -gt 0 ]; then
+  echo "❌ BLOCKED: .env files cannot be committed (security)"
+  printf '   %s\n' "${BLOCKED[@]}"
+  echo ""
+  echo "These files contain secrets and must NOT be in version control."
+  echo "If you need an env template, use .env.example instead."
+  echo ""
+  echo "To bypass (not recommended): git commit --no-verify"
+  exit 1
+fi
